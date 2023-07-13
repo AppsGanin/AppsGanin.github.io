@@ -126,25 +126,35 @@
         var seo = document.querySelector('.index-seo').innerText;
         var items = seo.split(' ');
 
-        (function flashWord() {
-            var i = 0;
-            function run(item) {
-                var t = setTimeout(function () {
-                    clearTimeout(t);
-                    document.querySelector('.index-seo').innerHTML = seo.replace(new RegExp(' ' + item + ' ', 'g'), ' <span style="color: #fff">' + item + '</span> ');
-                    if (items.length) {
-                        i = getRandom(0, items.length - 1);
-                        run(items[i].replace(/[^A-Za-zА-Яа-яёЁ0-9]/gim, ''));
-                    }
-                }, 100);
-            }
-            function getRandom(min, max) {
-                min = Math.ceil(min);
-                max = Math.floor(max);
-                return Math.floor(Math.random() * (max - min + 1)) + min;
-            }
-            run(items[i]);
-        })();
+        function flashWord() {
+            var seoElement = document.querySelector('.index-seo');
+            var seoText = seoElement.innerText;
+            var items = seoText.split(' ');
+    
+            var uniqItems = items.reduce((uniq, item) => {
+                if (!uniq[item]) {
+                    uniq[item] = `_${Math.random().toString().slice(2, 10)}`
+                }
+                return uniq;
+            }, {});
+    
+            seoElement.innerHTML =  Object.entries(uniqItems).reduce((total, [word, className]) => {
+                var cleanWord = word.replace(/[^A-Za-zА-Яа-яёЁ0-9]/gim);
+                if (word !== cleanWord) {
+                    return total;
+                }
+    
+                return total.replace(new RegExp(` ${cleanWord} `, 'g'),
+                    ` <span class="${className}">${cleanWord}</span> `);
+            }, seoText);
+    
+            var nodesMap = Object.values(uniqItems)
+                .map(className => Array.from(document.querySelectorAll(`.${className}`)), {})
+                .filter(nodes => nodes.length)
+                .sort((a, b) => b.length - a.length);
+    
+            run([], nodesMap);
+        }
 
         (function countMovies() {
             var date = new Date();
